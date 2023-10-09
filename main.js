@@ -5,11 +5,15 @@ import * as Gerstner from './gerstner.js'
 
 
 
+const oceanParameters = [
+    {
+        hm0: 1,
+        steep: 0.6,
+        angle: 90
+    }
+]
 
 
-let steep = 0.6;
-let hm0 = 2;
-let angle = 90;
 let time = (new Date().getTime()% 10000) / 1000;
 
 
@@ -18,12 +22,17 @@ const seconds = 5;
 let signal = [];
 for (let i = 0; i < seconds * sampleRate; i++){
     time = i/sampleRate;
-    let height = Gerstner.findHeightAt00(hm0, steep, angle, time);
+    let height = Gerstner.findHeightAt00(oceanParameters, time);
     signal[i] = height;
 }
-
+console.log("Painting");
 // Create canvas
 let canvas = document.createElement('canvas');
+document.body.appendChild(canvas);
+canvas.style.width = '100%';
+canvas.width = canvas.clientWidth;
+
+
 let ctx = canvas.getContext('2d');
 let ww = canvas.width;
 let hh = canvas.height;
@@ -31,17 +40,14 @@ let hh = canvas.height;
 ctx.beginPath();
 ctx.moveTo(0, hh/2);
 for (let i = 0; i < signal.length-1; i++){
-    let normH = -signal[i]/hm0;
+    let normH = -signal[i]/2;//hm0;
     
     ctx.lineTo(i, normH * (hh/2) + hh/2);
 }
 ctx.stroke();
 
-// ctx.rect(20, 20, 150, 100);
-// ctx.strokeStyle = "red";
-// ctx.fill();
 
-document.body.appendChild(canvas);
+
 
 
 
