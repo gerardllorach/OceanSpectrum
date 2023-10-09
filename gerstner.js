@@ -27,31 +27,49 @@ const getGerstnerPosition = function(displacement, position, hm0, steepness, dir
 
 let position = [0, 0, 0];
 let displacement = [0, 0, 0];
+let accDisplacement = [0, 0, 0];
 let prevPos = [0, 0, 0];
 const findHeightAt00 = (oceanParams, time) => {
 
     position[0] = 0;
     position[1] = 0;
     position[2] = 0;
+
+    
+
     for (let i = 0; i<20; i++){
-        //console.log('****')
-        //console.log(position)
+        // console.log('****')
+        // console.log(position)
         prevPos[0] = position[0];
-        prevPos[1] = position[1];
+        prevPos[2] = position[2];
+        position[1] = 0;
+
+        // accDisplacement[0] = 0; 
+        // accDisplacement[1] = 0; 
+        // accDisplacement[2] = 0;
 
         for (let waveIndex = 0; waveIndex < oceanParams.length; waveIndex++){
           let hm0 = oceanParams[waveIndex].hm0;
           let steep = oceanParams[waveIndex].steep;
           let angle = oceanParams[waveIndex].angle;
           getGerstnerPosition(displacement, position, hm0, steep, angle, time);
+
+          // It is a displacement, so add to the starting position
+          position[0] += displacement[0];
+          position[1] += displacement[1];
+          position[2] += displacement[2];
+
+          // accDisplacement[0] += displacement[0];
+          // accDisplacement[1] += displacement[1];
+          // accDisplacement[2] += displacement[2];
         }
 
-    
-        
         // It is a displacement, so add to the starting position
-        position[0] += displacement[0];
-        position[1] = displacement[1];
-        position[2] += displacement[2];
+        // position[0] += accDisplacement[0];
+        // position[1] = accDisplacement[1];
+        // position[2] += accDisplacement[2];
+        
+        
 
         let dist = Math.sqrt(position[0]*position[0] + position[2]*position[2]);
         
