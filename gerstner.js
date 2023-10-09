@@ -14,7 +14,7 @@ const getGerstnerPosition = function(displacement, position, hm0, steepness, dir
   let k = 2 * Math.PI / wavelength;
   let velocity = Math.sqrt(9.8 / k);
 
-  let f = k * (dirX * position[0] + dirZ * position[2]) -  velocity * time;
+  let f = k * ((dirX * position[0] + dirZ * position[2]) -  velocity * time);
 
   // Calculate position
   displacement[0] = dirX * amplitude * Math.cos(f);
