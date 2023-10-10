@@ -50,8 +50,10 @@ const findHeightAt00 = (oceanParams, time) => {
 
         for (let waveIndex = 0; waveIndex < oceanParams.length; waveIndex++){
           let hm0 = oceanParams[waveIndex].hm0;
-          let steep = oceanParams[waveIndex].steep;
+          let T = oceanParams[waveIndex].T;
           let angle = oceanParams[waveIndex].angle;
+
+          let steep = 4 * Math.PI * Math.PI * hm0 * 0.5 / (T * T * 9.8);
           getGerstnerPosition(displacement, position, hm0, steep, angle, time);
 
           // It is a displacement, so add to the starting position

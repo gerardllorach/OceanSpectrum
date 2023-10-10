@@ -71,7 +71,7 @@ export class OceanSpectrum {
     let ww = canvas.width;
     let hh = canvas.height;
 
-
+    // Paint
     ctx.beginPath();
     ctx.moveTo(0, hh);
     let numPoints = out.length/4;
@@ -82,6 +82,8 @@ export class OceanSpectrum {
       let normH = - magnitude / maxMag;
       let normW = i/numPoints;
       normW = Math.log10(normW * 10 ** this.logZoom)/ this.logZoom;
+      // Flip x axis
+      normW = 1- normW;
 
       ctx.lineTo(normW * ww, normH * hh + hh);
     }
@@ -89,7 +91,7 @@ export class OceanSpectrum {
 
 
     // PERIOD TICKS
-    let periods = [40, 30, 20, 15, 10, 8, 6, 5, 4, 3, 2, 1, 0.5];
+    let periods = [40, 30, 20, 15, 10, 8, 6, 5, 4, 3, 2, 1, 0.5, 0.25];
     for (let i = 0; i < periods.length; i++){
 
       let T = periods[i];
@@ -97,6 +99,8 @@ export class OceanSpectrum {
       let normW = freq / (this.samplingRate/2);
 
       normW = Math.log10(normW * 10 ** this.logZoom)/ this.logZoom;
+      // Flip x axis
+      normW = 1- normW;
 
       ctx.beginPath();      
       ctx.moveTo(normW * ww, hh / 2 - 10);
