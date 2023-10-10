@@ -12,26 +12,26 @@ const oceanParameters = [
         steep: 0.2,
         angle: 90
     },    
-    // {
-    //     hm0: 1,
-    //     steep: 0.2,
-    //     angle: 90
-    // },
-    // {
-    //     hm0: 0.2,
-    //     steep: 0.35,
-    //     angle: -60
-    // },
-    // {
-    //     hm0: 0.18,
-    //     steep: 0.35,
-    //     angle: -60
-    // },
-    // {
-    //     hm0: 0.21,
-    //     steep: 0.05,
-    //     angle: -60
-    // },
+    {
+        hm0: 1,
+        steep: 0.2,
+        angle: 90
+    },
+    {
+        hm0: 0.2,
+        steep: 0.35,
+        angle: -60
+    },
+    {
+        hm0: 0.18,
+        steep: 0.35,
+        angle: -60
+    },
+    {
+        hm0: 0.21,
+        steep: 0.05,
+        angle: -60
+    },
 ]
 
 
@@ -39,7 +39,7 @@ let time = (new Date().getTime()% 10000) / 1000;
 
 
 const sampleRate = 10;
-const seconds = 10;
+const seconds = 60;
 
 let signalSize = Math.pow(2, Math.ceil(Math.log(sampleRate * seconds)/Math.log(2)));
 
@@ -74,7 +74,8 @@ console.log("Painting");
 
     // TICKS
     let totalSec = signalSize / sampleRate;
-    for (let i = 0; i< totalSec; i++){
+    let step = Math.round(100 * totalSec / ww);  
+    for (let i = 0; i< totalSec; i += step){
       let normW = i / totalSec;
 
       ctx.beginPath();      
