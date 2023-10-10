@@ -8,8 +8,8 @@ import * as FFT from './fft.js'
 
 const oceanParameters = [
     {
-        hm0: 5,
-        steep: 0.01,
+        hm0: 2,
+        steep: 0.2,
         angle: 90
     },    
     // {
@@ -39,7 +39,7 @@ let time = (new Date().getTime()% 10000) / 1000;
 
 
 const sampleRate = 10;
-const seconds = 60*2;
+const seconds = 10;
 
 let signalSize = Math.pow(2, Math.ceil(Math.log(sampleRate * seconds)/Math.log(2)));
 
@@ -68,10 +68,30 @@ console.log("Painting");
     for (let i = 0; i < signal.length; i++){
         let normH = -signal[i]/2;//hm0;
         let normW = i/signal.length;
-
         ctx.lineTo(normW * canvas.width, normH * (hh/2) + hh/2);
     }
     ctx.stroke();
+
+    // TICKS
+    let totalSec = signalSize / sampleRate;
+    for (let i = 0; i< totalSec; i++){
+      let normW = i / totalSec;
+
+      ctx.beginPath();      
+      ctx.moveTo(normW * ww, hh / 2 - 5);
+      ctx.lineTo(normW * ww, hh / 2 + 5);
+      // Label the ticks with their corresponding x-values
+      ctx.stroke();
+      ctx.textAlign = "center";
+      ctx.fillText(i + ' s', normW * ww, hh / 2 + 20);
+    }
+    // Strait line
+    ctx.lineWidth = 0.5;
+    ctx.beginPath();      
+    ctx.moveTo(0, hh / 2 );
+    ctx.lineTo( ww, hh / 2);
+    ctx.stroke();
+    ctx.lineWidth = 1;
 }
 
 
@@ -98,45 +118,35 @@ console.log("Painting");
 
   ctx.beginPath();
   ctx.moveTo(0, hh);
-  let numPoints = magnitude.length;
+  let logZoom = 3;
+  let numPoints = magnitude.length/2;
   for (let i = 1; i < numPoints; i++){
-    let normH = -Math.sqrt(magnitude[i] * magnitude[i]) / maxMag;
-    //let normW = i/numPoints;
-    let normW = Math.log10(i+1)/Math.log10(numPoints + 1);
+    let normH = - magnitude[i] / maxMag;
+    let normW = i/numPoints;
+    normW = Math.log10(normW * 10 ** logZoom)/ logZoom;
 
     ctx.lineTo(normW * canvas.width, normH * hh + hh);
   }
   ctx.stroke();
 
 
+  // PERIOD TICKS
+  let periods = [40, 30, 20, 15, 10, 8, 6, 5, 4, 3, 2, 1, 0.5];
+  for (let i = 0; i < periods.length; i++){
 
-   // TICKS
-   for (let T = 1; T < 20; T++){
+    let T = periods[i];
+    let freq = 1 / T;
+    let normW = freq / (sampleRate/2);
 
-    let frequency = 1 / T;
+    normW = Math.log10(normW * 10 ** logZoom)/ logZoom;
 
-    let minFrequency = 1/20;
-    let maxFrequency = sampleRate/2;
-    // Map the frequency to a logarithmic scale within the specified range
-    let mappedFrequency = (Math.log10(frequency) - Math.log10(minFrequency)) / (Math.log10(maxFrequency) - Math.log10(minFrequency));
-    let normW = mappedFrequency;
-    // 0 to sampleRate/2
-    //let fftSize = signalSize;
-    //let i = freq * fftSize / sampleRate;
+    ctx.beginPath();      
+    ctx.moveTo(normW * ww, hh / 2 - 10);
+    ctx.lineTo(normW * ww, hh / 2 - 15);
+    ctx.stroke();
+    ctx.textAlign = "center";
+    ctx.fillText(T + ' s', normW * ww, hh / 2 - 20);
 
-    //let normW = Math.log10(freq)/Math.log10(sampleRate/2);
-    console.log(normW);
-    //if (i % Math.pow(10, Math.floor(Math.log10(i))) == 0) {
-      ctx.beginPath();      
-      ctx.moveTo(normW * ww, hh / 2 - 5);
-      ctx.lineTo(normW * ww, hh / 2 + 5);
-      // Label the ticks with their corresponding x-values
-      ctx.stroke();
-      ctx.textAlign = "center";
-
-      ctx.fillText(T + ' s', normW * ww, hh / 2 + 20);
-
-    //}
   }
 }
 
@@ -182,17 +192,17 @@ console.log("Painting");
   let ww = canvas.width;
   let hh = canvas.height;
 
-  
+  let logZoom = 3;
   ctx.beginPath();
   ctx.moveTo(0, hh);
-  let numPoints = out.length/2;
+  let numPoints = out.length/4;
   for (let i = 1; i < numPoints; i++){
 
     let magnitude = Math.sqrt(out[i*2] ** 2 + out[i*2 + 1] ** 2);
 
     let normH = - magnitude / maxMag;
-    //let normW = i/numPoints;
-    let normW = Math.log10(i+1)/Math.log10(numPoints + 1);
+    let normW = i/numPoints;
+    normW = Math.log10(normW * 10 ** logZoom)/ logZoom;
 
     ctx.lineTo(normW * canvas.width, normH * hh + hh);
   }
@@ -200,26 +210,23 @@ console.log("Painting");
 
 
 
-  // TICKS
-  for (let i = 0; i < numPoints; i++){
+  // PERIOD TICKS
+  let periods = [40, 30, 20, 15, 10, 8, 6, 5, 4, 3, 2, 1, 0.5];
+  for (let i = 0; i < periods.length; i++){
 
-    let normW = Math.log10(i+1)/Math.log10(numPoints + 1);
-      
-    if (i % Math.pow(10, Math.floor(Math.log10(i))) == 0) {
-      ctx.beginPath();      
-      ctx.moveTo(normW * ww, hh / 2 - 5);
-      ctx.lineTo(normW * ww, hh / 2 + 5);
-      // Label the ticks with their corresponding x-values
-      ctx.stroke();
+    let T = periods[i];
+    let freq = 1 / T;
+    let normW = freq / (sampleRate/2);
 
-      ctx.textAlign = "center";
-      if (Math.log10(i) % 1 == 0){
-        if (i < 1000)
-          ctx.fillText(i, normW * ww, hh / 2 + 20);
-        else
-          ctx.fillText(i/1000 + 'k', normW * ww, hh / 2 + 20);
-      }
-    }
+    normW = Math.log10(normW * 10 ** logZoom)/ logZoom;
+
+    ctx.beginPath();      
+    ctx.moveTo(normW * ww, hh / 2 - 10);
+    ctx.lineTo(normW * ww, hh / 2 - 15);
+    ctx.stroke();
+    ctx.textAlign = "center";
+    ctx.fillText(T + ' s', normW * ww, hh / 2 - 20);
+
   }
     
 }
