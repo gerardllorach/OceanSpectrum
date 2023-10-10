@@ -52,7 +52,7 @@ export class OceanSpectrum {
     let maxMag = 0.001;
     let specMagnitude = [];
     for (let i = 0; i < out.length/2; i++){
-      let magnitude = Math.sqrt(out[i*2] ** 2 + out[i*2 + 1] ** 2);
+      let magnitude = Math.sqrt(out[i*2] ** 2 + out[i*2 + 1] ** 2) / out.length; //https://www.sjsu.edu/people/burford.furman/docs/me120/FFT_tutorial_NI.pdf
       if (magnitude> maxMag) 
         maxMag = magnitude;
       specMagnitude[i] = magnitude;
