@@ -83,7 +83,7 @@ export class OceanSpectrum {
       let normW = i/numPoints;
       normW = Math.log10(normW * 10 ** this.logZoom)/ this.logZoom;
       // Flip x axis
-      normW = 1- normW;
+      //normW = 1- normW;
 
       ctx.lineTo(normW * ww, normH * hh + hh);
     }
@@ -100,7 +100,7 @@ export class OceanSpectrum {
 
       normW = Math.log10(normW * 10 ** this.logZoom)/ this.logZoom;
       // Flip x axis
-      normW = 1- normW;
+      //normW = 1- normW;
 
       ctx.beginPath();      
       ctx.moveTo(normW * ww, hh / 2 - 10);
