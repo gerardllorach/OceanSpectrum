@@ -61,5 +61,5 @@ oceanAnalysis.plotSignal(document.body, wavesParameters);
 oceanAnalysis.plotSpectrum(document.body, wavesParameters);
 
 console.log("Hm0: " + oceanAnalysis.getHm0(wavesParameters).toFixed(2) + " m.");
-
+console.log("Hmax: " + oceanAnalysis.getHmax(wavesParameters).toFixed(2) + " m.");
 

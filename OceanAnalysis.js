@@ -34,7 +34,7 @@ export class OceanAnalysis {
     if (this.signal == undefined)
       this.createSignal(wavesParameters);
 
-    // Get Hm0 using variance
+    // Get Hm0 using variance https://en.wikipedia.org/wiki/Significant_wave_height
     // Mean should be zero
     let sumValue = 0;
     for (let i = 0; i < this.signal.length; i++){
@@ -44,6 +44,20 @@ export class OceanAnalysis {
     
     return 4 * sigma;
 
+  }
+
+  getHmax(wavesParameters){
+    // Check if signal exists
+    if (this.signal == undefined)
+      this.createSignal(wavesParameters);
+
+    // Get Hmax by checking maximum and minimum values
+    // TODO: should this be done in windows of 20sec - maxT?
+    let maxHeight = Math.max.apply(Math, this.signal);
+    let minHeight = Math.min.apply(Math, this.signal);
+    // Return extreme wave
+    // Is this correct? We assume perfect 0 measurement.
+    return maxHeight + Math.abs(minHeight);
   }
 
 
@@ -92,9 +106,11 @@ export class OceanAnalysis {
     canvas.width = canvas.clientWidth;
     let ctx = canvas.getContext('2d');
     let ww = canvas.width;
-    let hh = canvas.height;
+    let paddingH = 40;
+    let hh = canvas.height - paddingH;
 
     // Paint
+    ctx.strokeStyle = 'rgba(0, 0, 0, 1)';
     ctx.beginPath();
     ctx.moveTo(0, hh);
     let numPoints = specMagnitude.length / 2;//out.length/4;
@@ -114,7 +130,11 @@ export class OceanAnalysis {
 
 
     // PERIOD TICKS
+    hh = canvas.height;
     let periods = [40, 30, 20, 15, 10, 8, 6, 5, 4, 3, 2, 1, 0.5, 0.25];
+    if (ww < 650)
+      periods = [40, 20, 10, 5, 3, 2, 1, 0.5, 0.25];
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
     for (let i = 0; i < periods.length; i++){
 
       let T = periods[i];
@@ -126,12 +146,11 @@ export class OceanAnalysis {
       //normW = 1- normW;
 
       ctx.beginPath();      
-      ctx.moveTo(normW * ww, hh / 2 - 10);
-      ctx.lineTo(normW * ww, hh / 2 - 15);
+      ctx.moveTo(normW * ww, 0);
+      ctx.lineTo(normW * ww, hh - 20);
       ctx.stroke();
       ctx.textAlign = "center";
-      ctx.fillText(T + ' s', normW * ww, hh / 2 - 20);
-
+      ctx.fillText(T + ' s', normW * ww, hh - 10);
     }
 
     return canvas;
@@ -151,11 +170,7 @@ export class OceanAnalysis {
       this.createSignal(wavesParameters);
 
     // Find maximum value in signal
-    let maxValue = 8;
-    for (let i = 0; i < this.signal.length; i++){
-      if (Math.abs(this.signal[i]) > maxValue)
-        maxValue = Math.abs(this.signal[i]);
-    }
+    let Hmax = this.getHmax(wavesParameters);
 
     let parentEl = container || document.body;
 
@@ -166,42 +181,77 @@ export class OceanAnalysis {
     canvas.style.width = '100%';
     canvas.width = canvas.clientWidth;
     let ctx = canvas.getContext('2d');
-    let ww = canvas.width;
-    let hh = canvas.height;
+    let paddingW = 100;
+    let ww = canvas.width - paddingW;
+    let paddingH = 20;
+    let hh = canvas.height - paddingH;
+
+    // Seconds to paint
+    let numSec = 40;
+    numSec = Math.min(this.signal.length, numSec);
+    let numPoints = numSec * this.samplingRate;
 
     // Paint signal
+    ctx.strokeStyle = 'rgba(0, 0, 0, 1)';
     ctx.lineWidth = 1;
     ctx.strokeStyle = 'black';
     ctx.beginPath();
     ctx.moveTo(0, hh/2);
-    for (let i = 0; i < this.signal.length; i++){
-        let normH = -this.signal[i]/maxValue;//hm0;
-        let normW = i/this.signal.length;
-        ctx.lineTo(normW * canvas.width, normH * (hh/2) + hh/2);
+    for (let i = 0; i < numPoints; i++){
+        let normH = - this.signal[i] / Hmax;
+        let normW = i/numPoints;
+        ctx.lineTo(normW * ww, normH * (hh/2) + hh/2);
     }
     ctx.stroke();
 
-    // Ticks
-    let totalSec = this.signalSize / this.samplingRate;
-    let step = Math.round(100 * totalSec / ww);  
-    for (let i = 0; i< totalSec; i += step){
-      let normW = i / totalSec;
-
-      ctx.beginPath();      
-      ctx.moveTo(normW * ww, hh / 2 - 5);
-      ctx.lineTo(normW * ww, hh / 2 + 5);
-      // Label the ticks with their corresponding x-values
-      ctx.stroke();
-      ctx.textAlign = "center";
-      ctx.fillText(i + ' s', normW * ww, hh / 2 + 20);
-    }
-    // Strait line
+    // Y - lines
+    // Zero line
+    ctx.strokeStyle = 'rgba(0, 0, 0, 1)';
     ctx.lineWidth = 0.5;
     ctx.beginPath();      
     ctx.moveTo(0, hh / 2 );
     ctx.lineTo( ww, hh / 2);
     ctx.stroke();
-    ctx.lineWidth = 1;
+    
+
+    // Hmax lines
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.lineWidth = 0.5;
+    ctx.beginPath();      
+    ctx.moveTo(0, (hh/2) + hh/4  );
+    ctx.lineTo( ww, (hh/2) + hh/4 );
+    ctx.stroke();
+
+    ctx.beginPath();      
+    ctx.moveTo(0, (hh/2) - hh/4  );
+    ctx.lineTo( ww, (hh/2) - hh/4 );
+    ctx.stroke();
+
+    // Y - Text ticks
+    ctx.textAlign = "start";
+    ctx.fillText(0.5*Hmax.toFixed(1) + ' m', ww + 5, hh * 0.25);
+    ctx.fillText('0 m', ww + 5, hh / 2);
+    ctx.fillText(-0.5*Hmax.toFixed(1) + ' m', ww + 5, hh * 0.75);
+
+
+    
+    // X - Ticks
+    hh = canvas.height;
+    let hhPadded = canvas.height - paddingH;
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
+    let step = Math.round(100 * numSec / ww);  
+    for (let i = 0; i< numSec; i += step){
+      let normW = i / numSec;
+
+      ctx.beginPath();      
+      ctx.moveTo(normW * ww, 20);
+      ctx.lineTo(normW * ww, hhPadded - 20);
+      // Label the ticks with their corresponding x-values
+      ctx.stroke();
+      ctx.textAlign = "center";
+      ctx.fillText(i + ' s', normW * ww, hh - 20);
+    }
+    
 
 
     return canvas;
