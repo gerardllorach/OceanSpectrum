@@ -95,7 +95,7 @@ export class OceanAnalysis {
     let specMagnitude = this.getSpectrumMagnitude(wavesParameters);
     // Get maximum magnitude (for plot normalization)
     let maxMag = Math.max.apply(Math, specMagnitude);
-    console.log("Maximum magnitude: " + maxMag);
+    //console.log("Maximum magnitude: " + maxMag);
 
     // Create and append canvas
     let parentEl = container || document.body;
