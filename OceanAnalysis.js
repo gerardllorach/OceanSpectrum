@@ -2,7 +2,7 @@
 import * as Gerstner from './gerstner.js'
 import * as FFT from './fft.js'
 
-export class OceanSpectrum {
+export class OceanAnalysis {
 
 
   samplingRate = 20;
@@ -16,29 +16,43 @@ export class OceanSpectrum {
   }
 
 
-  createSignal(oceanParams){
+  createSignal(wavesParameters){
 
     this.signalSize = Math.pow(2, Math.ceil(Math.log(this.samplingRate * this.seconds)/Math.log(2)));
     this.signal = new Float32Array(this.signalSize);
     for (let i = 0; i < this.signalSize; i++){
       let time = i / this.samplingRate;
-      let height = Gerstner.findHeightAt00(oceanParams, time);
+      let height = Gerstner.findHeightAt00(wavesParameters, time);
       this.signal[i] = height;
     }
   }
 
 
-
-
-
-
-
-
-
-  plotSpectrum(container, oceanParams){
+  // Calculate wave significant height
+  getHm0(wavesParameters){
     // Check if signal exists
     if (this.signal == undefined)
-      this.createSignal(oceanParams);
+      this.createSignal(wavesParameters);
+
+    // Get Hm0 using variance
+    // Mean should be zero
+    let sumValue = 0;
+    for (let i = 0; i < this.signal.length; i++){
+      sumValue += this.signal[i]*this.signal[i];
+    }
+    let sigma = Math.sqrt(sumValue / this.signal.length);
+    
+    return 4 * sigma;
+
+  }
+
+
+
+  // Calculate spectrum
+  getSpectrumMagnitude(wavesParameters){
+    // Check if signal exists
+    if (this.signal == undefined)
+      this.createSignal(wavesParameters);
 
     // Calculate spectrum
     const fftSize = this.signalSize;
@@ -49,20 +63,29 @@ export class OceanSpectrum {
     f.transform(out, data);
 
     // Calculate magnitude
-    let maxMag = 0.001;
     let specMagnitude = [];
     for (let i = 0; i < out.length/2; i++){
       let magnitude = Math.sqrt(out[i*2] ** 2 + out[i*2 + 1] ** 2) / out.length; //https://www.sjsu.edu/people/burford.furman/docs/me120/FFT_tutorial_NI.pdf
-      if (magnitude> maxMag) 
-        maxMag = magnitude;
       specMagnitude[i] = magnitude;
     }
-    console.log("Maximum magnitude: " + maxMag);
+    
 
+    return specMagnitude;
+  }
+
+
+
+
+  plotSpectrum(container, wavesParameters){
+
+    let specMagnitude = this.getSpectrumMagnitude(wavesParameters);
+    // Get maximum magnitude (for plot normalization)
+    let maxMag = Math.max.apply(Math, specMagnitude);
+    console.log("Maximum magnitude: " + maxMag);
 
     // Create and append canvas
     let parentEl = container || document.body;
-    let el = document.getElementById('oceanSpectrumSpectrum');
+    let el = document.getElementById('oceanAnalysisSpectrum');
     let canvas = el || document.createElement('canvas');
     parentEl.appendChild(canvas);
     canvas.style.width = '100%';
@@ -74,7 +97,7 @@ export class OceanSpectrum {
     // Paint
     ctx.beginPath();
     ctx.moveTo(0, hh);
-    let numPoints = out.length/4;
+    let numPoints = specMagnitude.length / 2;//out.length/4;
     for (let i = 1; i < numPoints; i++){
 
       let magnitude = specMagnitude[i];
@@ -122,10 +145,10 @@ export class OceanSpectrum {
 
 
 
-  plotSignal(container, oceanParams){
+  plotSignal(container, wavesParameters){
     // If signal does not exist, create one
     if (this.signal == undefined)
-      this.createSignal(oceanParams);
+      this.createSignal(wavesParameters);
 
     // Find maximum value in signal
     let maxValue = 8;
@@ -137,7 +160,7 @@ export class OceanSpectrum {
     let parentEl = container || document.body;
 
     // Create and append canvas
-    let el = document.getElementById('oceanSpectrumSignal');
+    let el = document.getElementById('oceanAnalysisSignal');
     let canvas = el || document.createElement('canvas');
     parentEl.appendChild(canvas);
     canvas.style.width = '100%';
